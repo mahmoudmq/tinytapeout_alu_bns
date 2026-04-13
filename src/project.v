@@ -29,7 +29,7 @@ module tt_um_example (
 
   // All output pins must be assigned. If not used, assign to 0.
     always@(*) begin
-        case (ui_in[7:6):
+        case (ui_in[7:6]):
                     2'b00: uo_out = sub_out;
                     2'b01: uo_out = lg_out;
                     2'b11: uo_out = mult_out;
