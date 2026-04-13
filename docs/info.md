@@ -9,12 +9,14 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+It' a simple ALU that does the following logic and arithematic operations:
+- 
+-
 
 ## How to test
 
-Explain how to use your project
+Input random values and check for the output matches the operation.
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+LEDs or a Logic analyzer to visualize the outputs.
