@@ -15,13 +15,59 @@ module tt_um_example (
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
+    // Declare signals
+    wire [7:0] sub_out;
+    wire [7:0] lg_out;
+    wire [5:0] mult_out;
+    wire [1:0] flag_out;
+    
+    // modules instantiation
+    subtractor sub(ui_in, uio_in, sub_out);
+    Logic_unit lg(ui_in, uio_in, lg_out);
+    multiplier mult([2:0] ui_in, [2:0] uio_in, mult_out, flag_out);
+    
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
+    always@(*) begin
+        case (ui_in[7:6):
+                    2'b00: uo_out = sub_out;
+                    2'b01: uo_out = lg_out;
+                    2'b11: uo_out = mult_out;
+                    default: uo_out = 0;
+        endcase
+    end
+                    
   assign uio_out = 0;
   assign uio_oe  = 0;
 
   // List all unused inputs to prevent warnings
   wire _unused = &{ena, clk, rst_n, 1'b0};
 
+endmodule
+
+
+module subtractor(
+    input [7:0] A,
+    input [7:0] B,
+    output [7:0] C
+);
+    assign C = A - B;
+endmodule
+
+module Logic_Unit(
+    input [7:0] A,
+    input [7:0] B,
+    output [7:0] C
+);
+    assign C = A & B;
+endmodule
+
+module multiplier(
+    input [2:0] A,
+    input [2:0] B,
+    output [5:0] C,
+    output [1:0] flag
+);
+    assign C = A * B;
+    assign flag = 2'b0;
 endmodule
