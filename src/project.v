@@ -24,7 +24,7 @@ module tt_um_example (
     // modules instantiation
     subtractor sub(ui_in, uio_in, sub_out);
     Logic_unit lg(ui_in, uio_in, lg_out);
-    multiplier mult([2:0] ui_in, [2:0] uio_in, mult_out, flag_out);
+    multiplier mult( ui_in[2:0] , uio_in[2:0] , mult_out, flag_out);
     
 
   // All output pins must be assigned. If not used, assign to 0.
@@ -32,7 +32,7 @@ module tt_um_example (
         case (ui_in[7:6]):
                     2'b00: uo_out = sub_out;
                     2'b01: uo_out = lg_out;
-                    2'b11: uo_out = mult_out;
+                    2'b11: uo_out = {2'b00, mult_out};
                     default: uo_out = 0;
         endcase
     end
