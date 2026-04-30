@@ -1,4 +1,4 @@
-module ALU_Top_Module (
+module tt_um_alu_bns (
     input  wire [5:0] A,
     input  wire [5:0] B,
     input  wire       Cin,
