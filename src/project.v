@@ -133,8 +133,8 @@ module wallace_tree_mult_6bit (
     always @(*) begin
 
          for (i = 0; i < 6; i = i + 1) begin : gen_pp
-            assign pp[i]     = A & {6{B[i]}};
-            assign pp_ext[i] = {{6{1'b0}}, pp[i]} << i;
+             pp[i]     = A & {6{B[i]}};
+             pp_ext[i] = {{6{1'b0}}, pp[i]} << i;
             
         end
         
