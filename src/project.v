@@ -1,21 +1,21 @@
 module tt_um_alu_bns (
-    input  wire [7:0] ui_in,  
-    output wire [7:0] uo_out,    
-    input  wire [7:0] uio_in,   
-    output wire [7:0] uio_out,  
+    input  wire [7:0] ui_in,
+    output wire [7:0] uo_out,
+    input  wire [7:0] uio_in,
+    output wire [7:0] uio_out,
     output wire [7:0] uio_oe,
-    input  wire       ena,     
-    input  wire       clk,    
-    input  wire       rst_n  
+    input  wire       ena,
+    input  wire       clk,
+    input  wire       rst_n
 );
 
     wire [5:0] A      = ui_in[5:0];
     wire       Cin    = ui_in[6];
-    wire [2:0] opcode = {uio_in[7:6], ui_in[7]};  
-
+    wire [2:0] opcode = {uio_in[7:6], ui_in[7]};
     wire [5:0] B      = uio_in[5:0];
-    
-    wire [1:0] sub_op = 2'b00; 
+    wire [1:0] sub_op = 2'b00;
+
+    wire [11:0] Result;
     wire        Cout;
     wire        Valid;
 
@@ -26,9 +26,8 @@ module tt_um_alu_bns (
     );
 
     assign uo_out  = Result[7:0];
-    
     assign uio_out = {2'b00, Valid, Cout, Result[11:8]};
-    assign uio_oe  = 8'b11111111; 
+    assign uio_oe  = 8'b11111111;
 
 endmodule
 
@@ -36,14 +35,13 @@ module alu_core (
     input  wire [5:0] A,
     input  wire [5:0] B,
     input  wire       Cin,
-    input  wire [2:0] opcode,  // Opcode 
-    input  wire [1:0] sub_op,  // لاختيار العملية داخل الوحدة 
-    output reg [11:0] Result,  // 12-bit  (6x6)
+    input  wire [2:0] opcode,
+    input  wire [1:0] sub_op,
+    output reg [11:0] Result,
     output reg        Cout,
     output reg        Valid
 );
 
-    // الأسلاك الداخلية لنواتج الموديولات
     wire [5:0]  rca_sum;
     wire        rca_cout;
     wire [5:0]  cla_sum_6;
@@ -54,91 +52,96 @@ module alu_core (
     wire [5:0]  shift_pop_result;
     wire [5:0]  comp_result;
 
-    // 1. RCA Adder 
     rca_6_bit u_rca (
         .A(A), .B(B), .Cin(Cin), .Sum(rca_sum), .Cout(rca_cout)
     );
 
-    // 2. CLA Adder 
     cla_adder_6bit u_cla (
         .A(A), .B(B), .Cin(Cin), .sum(cla_sum_6), .Cout(cla_cout_6)
     );
 
-    // 3. Array Multiplier 
     Array_Mult u_array_mult (
         .A(A), .B(B), .Product(array_mult_prod)
     );
 
-    // 4. Wallace Tree Multiplier 
     wallace_tree_mult_6bit u_wallace (
         .A(A), .B(B), .product(wallace_mult_6)
     );
 
-    // 5. Logic Unit 
     logic_unit_6bits u_logic (
         .A(A), .B(B), .op_sel(sub_op), .result(logic_result)
     );
 
-    // 6. Shift & Popcount Unit 
     wire [1:0] sp_op = (opcode == 3'b111) ? 2'b10 : sub_op;
     shift_popcount_unit u_shift_pop (
         .opcode(sp_op), .A(A), .B(B), .result(shift_pop_result)
     );
 
-    // 7. Comparator Unit 
     comparator_unit u_comp (
         .A(A), .B(B), .comp_out(comp_result)
     );
 
-    // MUX (8-to-1)
     always @(*) begin
-
         Result = 12'b0;
         Cout   = 1'b0;
         Valid  = 1'b1;
-
         case (opcode)
-
-            3'b000: begin 
-                Result = {6'b0, rca_sum}; Cout = rca_cout; 
-            end
-            
-            3'b001: begin 
-                Result = {6'b0, cla_sum_6}; Cout = cla_cout_6; 
-            end
-            
-            3'b010: begin 
-                Result = array_mult_prod; 
-            end
-            
-            3'b011: begin 
-                Result = wallace_mult_6; 
-            end
-            
-            3'b100: begin 
-                Result = {6'b0, logic_result}; 
-            end
-            
-            3'b101: begin 
-                Result = {6'b0, shift_pop_result};
-            end
-            
-            3'b110: begin 
-                Result = {6'b0, comp_result};
-            end
-            
-            3'b111: begin 
-                Result = {6'b0, shift_pop_result}; 
-            end
-            
-            default: begin
-                Valid = 1'b0; 
-            end
-
-
+            3'b000: begin Result = {6'b0, rca_sum};        Cout = rca_cout;   end
+            3'b001: begin Result = {6'b0, cla_sum_6};      Cout = cla_cout_6; end
+            3'b010: begin Result = array_mult_prod;                            end
+            3'b011: begin Result = wallace_mult_6;                             end
+            3'b100: begin Result = {6'b0, logic_result};                       end
+            3'b101: begin Result = {6'b0, shift_pop_result};                   end
+            3'b110: begin Result = {6'b0, comp_result};                        end
+            3'b111: begin Result = {6'b0, shift_pop_result};                   end
+            default: Valid = 1'b0;
         endcase
-
     end
+
+endmodule
+
+module cla_adder_6bit (
+    input  wire [5:0] A,
+    input  wire [5:0] B,
+    input  wire       Cin,
+    output wire [5:0] sum,
+    output wire       Cout
+);
+    wire c4;
+
+    cla_4bit u0 (
+        .a(A[3:0]), .b(B[3:0]), .cin(Cin),
+        .sum(sum[3:0]), .cout(c4)
+    );
+
+    wire c5;
+    fa_1bit fa4 (.a(A[4]), .b(B[4]), .cin(c4),  .sum(sum[4]), .cout(c5));
+    fa_1bit fa5 (.a(A[5]), .b(B[5]), .cin(c5),  .sum(sum[5]), .cout(Cout));
+
+endmodule
+
+module wallace_tree_mult_6bit (
+    input  wire [5:0] A,
+    input  wire [5:0] B,
+    output wire [11:0] product
+);
+  
+    wire [5:0] pp [0:5];
+    wire [11:0] pp_ext [0:5];
+
+    integer i;
+    always @(*) begin
+
+         for (i = 0; i < 6; i = i + 1) begin : gen_pp
+            assign pp[i]     = A & {6{B[i]}};
+            assign pp_ext[i] = {{6{1'b0}}, pp[i]} << i;
+            
+        end
+        
+    end
+
+    assign product = pp_ext[0] + pp_ext[1] + pp_ext[2]
+                   + pp_ext[3] + pp_ext[4] + pp_ext[5];
 
 endmodule
 
