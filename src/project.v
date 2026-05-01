@@ -1,4 +1,35 @@
 module tt_um_alu_bns (
+    input  wire [7:0] ui_in,  
+    output wire [7:0] uo_out,    
+    input  wire [7:0] uio_in,   
+    output wire [7:0] uio_out,  
+    output wire [7:0] uio_oe
+);
+
+    wire [5:0] A      = ui_in[5:0];
+    wire       Cin    = ui_in[6];
+    wire [2:0] opcode = {uio_in[7:6], ui_in[7]};  
+
+    wire [5:0] B      = uio_in[5:0];
+    
+    wire [1:0] sub_op = 2'b00; 
+    wire        Cout;
+    wire        Valid;
+
+    alu_core u_alu (
+        .A(A), .B(B), .Cin(Cin),
+        .opcode(opcode), .sub_op(sub_op),
+        .Result(Result), .Cout(Cout), .Valid(Valid)
+    );
+
+    assign uo_out  = Result[7:0];
+    
+    assign uio_out = {2'b00, Valid, Cout, Result[11:8]};
+    assign uio_oe  = 8'b11111111; 
+
+endmodule
+
+module alu_core (
     input  wire [5:0] A,
     input  wire [5:0] B,
     input  wire       Cin,
