@@ -126,8 +126,8 @@ module wallace_tree_mult_6bit (
     output wire [11:0] product
 );
   
-    wire [5:0] pp [0:5];
-    wire [11:0] pp_ext [0:5];
+    reg [5:0] pp [0:5];
+    reg [11:0] pp_ext [0:5];
 
     integer i;
     always @(*) begin
