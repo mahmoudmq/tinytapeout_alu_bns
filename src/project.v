@@ -53,7 +53,7 @@ module alu_core (
     wire [5:0]  comp_result;
 
     rca_6_bit u_rca (
-        .A(A), .B(B), .Cin(Cin), .Sum(rca_sum), .Cout(rca_cout)
+        .A(A), .B(B), .Cin(Cin), .sum(rca_sum), .Cout(rca_cout)
     );
 
     cla_adder_6bit u_cla (
@@ -107,16 +107,16 @@ module cla_adder_6bit (
     output wire [5:0] sum,
     output wire       Cout
 );
-    wire c4;
+    wire C4;
 
     cla_4bit u0 (
-        .a(A[3:0]), .b(B[3:0]), .cin(Cin),
-        .sum(sum[3:0]), .cout(c4)
+        .A(A[3:0]), .B(B[3:0]), .Cin(Cin),
+        .sum(sum[3:0]), .Cout(C4)
     );
 
-    wire c5;
-    fa_1bit fa4 (.a(A[4]), .b(B[4]), .cin(c4),  .sum(sum[4]), .cout(c5));
-    fa_1bit fa5 (.a(A[5]), .b(B[5]), .cin(c5),  .sum(sum[5]), .cout(Cout));
+    wire C5;
+    fa_1bit fa4 (.A(A[4]), .B(B[4]), .Cin(C4),  .sum(sum[4]), .Cout(C5));
+    fa_1bit fa5 (.A(A[5]), .B(B[5]), .Cin(C5),  .sum(sum[5]), .Cout(Cout));
 
 endmodule
 
@@ -146,14 +146,14 @@ module wallace_tree_mult_6bit (
 endmodule
 
 // RCA Full Adder 6-bit
-module rca_6_bit (A, B, Cin, Sum, Cout);
+module rca_6_bit (A, B, Cin, sum, Cout);
 
     parameter N = 6;
 
     input [N-1:0]  A, B;
     input          Cin;
 
-    output reg [N-1:0] Sum;
+    output reg [N-1:0] sum;
     output reg         Cout;    
 
     reg [N:0] Carry;
@@ -166,7 +166,7 @@ module rca_6_bit (A, B, Cin, Sum, Cout);
 
         for (i = 0; i < 6; i = i + 1) begin
         
-        {Carry[i+1],Sum[i]} = A[i] + B[i] + Carry[i];
+            {Carry[i+1],sum[i]} = A[i] + B[i] + Carry[i];
 
         end
 
@@ -251,60 +251,60 @@ endmodule
 
 // the design of full adder 
 module fa_1bit (
-    input  a,
-    input  b,
-    input  cin,
+    input  A,
+    input  B,
+    input  Cin,
     output sum,
-    output cout
+    output Cout
 );
 
-    assign sum  = a ^ b ^ cin;
-    assign cout = (a & b) | (b & cin) | (a & cin);
+    assign sum  = A ^ B ^ Cin;
+    assign Cout = (A & B) | (B & Cin) | (A & Cin);
 
 endmodule
 
 // the design of cla_adder_4bit
 
-module cla_4bit ( a, b, cin, sum, cout );
+module cla_4bit ( A, B, Cin, sum, Cout );
 
     parameter n = 4 ;
 
-    input [n-1:0] a , b;
-    input cin;
+    input [n-1:0] A , B;
+    input Cin;
     output [n-1:0] sum;
-    output cout; 
+    output Cout; 
 
     wire g0, g1, g2, g3;
     wire p0, p1, p2, p3;
 
-    assign g0 = a[0] & b[0];   
-    assign g1 = a[1] & b[1];   
-    assign g2 = a[2] & b[2];   
-    assign g3 = a[3] & b[3];   
+    assign g0 = A[0] & B[0];   
+    assign g1 = A[1] & B[1];   
+    assign g2 = A[2] & B[2];   
+    assign g3 = A[3] & B[3];   
 
-    assign p0 = a[0] ^ b[0];   
-    assign p1 = a[1] ^ b[1];   
-    assign p2 = a[2] ^ b[2];   
-    assign p3 = a[3] ^ b[3];   
+    assign p0 = A[0] ^ B[0];   
+    assign p1 = A[1] ^ B[1];   
+    assign p2 = A[2] ^ B[2];   
+    assign p3 = A[3] ^ B[3];   
 
-    wire c1, c2, c3;
+    wire C1, C2, C3;
 
-    assign c1 = g0 | (p0 & cin);
+    assign C1 = g0 | (p0 & Cin);
 
-    assign c2 = g1 | (p1 & g0) | (p1 & p0 & cin);
+    assign C2 = g1 | (p1 & g0) | (p1 & p0 & Cin);
 
-    assign c3 = g2 | (p2 & g1) | (p2 & p1 & g0) | (p2 & p1 & p0 & cin);
+    assign C3 = g2 | (p2 & g1) | (p2 & p1 & g0) | (p2 & p1 & p0 & Cin);
 
-    assign cout = g3
+    assign Cout = g3
                 | (p3 & g2)
                 | (p3 & p2 & g1)
                 | (p3 & p2 & p1 & g0)
-                | (p3 & p2 & p1 & p0 & cin);
+                | (p3 & p2 & p1 & p0 & Cin);
 
-    assign sum[0] = p0 ^ cin;  
-    assign sum[1] = p1 ^ c1;   
-    assign sum[2] = p2 ^ c2;   
-    assign sum[3] = p3 ^ c3;  
+    assign sum[0] = p0 ^ Cin;  
+    assign sum[1] = p1 ^ C1;   
+    assign sum[2] = p2 ^ C2;   
+    assign sum[3] = p3 ^ C3;  
 
 endmodule
 
@@ -320,38 +320,38 @@ module cla_adder_16bit ( A, B, Cin, sum, Cout );
     output [m-1:0] sum;
     output  Cout;
 
-    wire c4, c8, c12;
+    wire C4, C8, C12;
 
     cla_4bit u0 (
-        .a    (A[3:0]),
-        .b    (B[3:0]),
-        .cin  (Cin),
+        .A    (A[3:0]),
+        .B    (B[3:0]),
+        .Cin  (Cin),
         .sum  (sum[3:0]),
-        .cout (c4)
+        .Cout (C4)
     );
 
     cla_4bit u1 (
-        .a    (A[7:4]),
-        .b    (B[7:4]),
-        .cin  (c4),
+        .A    (A[7:4]),
+        .B    (B[7:4]),
+        .Cin  (C4),
         .sum  (sum[7:4]),
-        .cout (c8)
+        .Cout (C8)
     );
 
     cla_4bit u2 (
-        .a    (A[11:8]),
-        .b    (B[11:8]),
-        .cin  (c8),
+        .A    (A[11:8]),
+        .B    (B[11:8]),
+        .Cin  (C8),
         .sum  (sum[11:8]),
-        .cout (c12)
+        .Cout (C12)
     );
 
     cla_4bit u3 (
-        .a    (A[15:12]),
-        .b    (B[15:12]),
-        .cin  (c12),
+        .A    (A[15:12]),
+        .B    (B[15:12]),
+        .Cin  (C12),
         .sum  (sum[15:12]),
-        .cout (Cout)
+        .Cout (Cout)
     );
 
 endmodule
@@ -448,12 +448,12 @@ endmodule
 //  Half Adder (1-bit)
 
 module half_adder (
-    input  a, b,
-    output sum, cout
+    input  A, B,
+    output sum, Cout
 );
 
-    assign sum  = a ^ b;
-    assign cout = a & b;
+    assign sum  = A ^ B;
+    assign Cout = A & B;
 
 endmodule
 //==============================================================
@@ -461,12 +461,12 @@ endmodule
 //  Full Adder (1-bit)
 
 module full_adder (
-    input  a, b, cin,
-    output sum, cout
+    input  A, B, Cin,
+    output sum, Cout
 );
 
-    assign sum  = a ^ b ^ cin;
-    assign cout = (a & b) | (b & cin) | (a & cin);
+    assign sum  = A ^ B ^ Cin;
+    assign Cout = (A & B) | (B & Cin) | (A & Cin);
 
 endmodule
 //================================================================
