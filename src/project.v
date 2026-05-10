@@ -26,8 +26,8 @@ module tt_um_alu_bns (
     );
 
     assign uo_out  = Result[7:0];
-    assign uio_out = {2'b00, Valid, Cout, Result[11:8]};
-    assign uio_oe  = 8'b11111111;
+    assign uio_out = 8'b0;
+    assign uio_oe  = 8'b0;
 
 endmodule
 
